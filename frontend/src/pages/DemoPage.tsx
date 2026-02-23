@@ -83,19 +83,20 @@ export default function DemoPage() {
     if (typeof window === "undefined" || !(window as any).ethereum) {
       throw new Error("No wallet found. Install MetaMask.");
     }
-    const provider = new ethers.BrowserProvider((window as any).ethereum);
-    const accounts = await provider.send("eth_requestAccounts", []);
-    const network = await provider.getNetwork();
+    const ethereum = (window as any).ethereum;
+    await ethereum.request({ method: "eth_requestAccounts" });
 
-    if (Number(network.chainId) !== AMOY_CHAIN_ID) {
+    // Switch chain first, THEN create provider (avoids stale chainId bug)
+    const currentChainId = parseInt(await ethereum.request({ method: "eth_chainId" }), 16);
+    if (currentChainId !== AMOY_CHAIN_ID) {
       try {
-        await (window as any).ethereum.request({
+        await ethereum.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId: "0x" + AMOY_CHAIN_ID.toString(16) }],
         });
       } catch (switchError: any) {
         if (switchError.code === 4902) {
-          await (window as any).ethereum.request({
+          await ethereum.request({
             method: "wallet_addEthereumChain",
             params: [
               {
@@ -111,10 +112,15 @@ export default function DemoPage() {
               },
             ],
           });
+        } else {
+          throw switchError;
         }
       }
     }
 
+    // Create provider AFTER chain switch so it has the correct chainId
+    const provider = new ethers.BrowserProvider(ethereum);
+    const accounts = await provider.send("eth_accounts", []);
     setWalletAddress(accounts[0]);
     return provider;
   };
@@ -399,7 +405,7 @@ export default function DemoPage() {
     { key: "requesting", label: "Requesting API endpoint...", icon: Zap },
     { key: "got402", label: "Received 402 Payment Required", icon: AlertCircle },
     { key: "stealth", label: "Generating stealth address (ECDH)...", icon: Key },
-    { key: "signing", label: "Signing EIP-3009 authorization (MetaMask)...", icon: Shield },
+    { key: "signing", label: "Signing EIP-3009 authorization — check MetaMask popup...", icon: Shield },
     { key: "processing", label: "Reading on-chain contract state...", icon: Loader2 },
     { key: "complete", label: "Payment authorized, data received!", icon: CheckCircle },
   ];
