@@ -14,12 +14,13 @@ export const CONTRACT_ADDRESSES: Record<number, Record<string, string>> = {
   // Polygon Mainnet
   137: {
     USDC: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
-    StealthAnnouncer: "",
-    StealthMetaRegistry: "",
-    FeeVault: "",
-    AgentRegistry: "",
-    ComplianceGate: "",
-    StealthPaymentRouter: "",
+    StealthAnnouncer: "0x1392C68fDD7EFF17b16F16350db834FA8FFFD40f",
+    StealthMetaRegistry: "0x0709857a1556C194637D7b6Aa9bD230744985c9D",
+    FeeVault: "0x0D0FfD08A799182CEBaae665cC84d7ae0260194b",
+    AgentRegistry: "0xAD60dCBb80Bc71EF9Ee1463a5842aC1354A3d6b5",
+    ComplianceGate: "0x49dc97c79DD786008f5b8059366C4bbB91357D5F",
+    StealthPaymentRouter: "0x78308d47c2f534C4D51B35B1e1E95dFb689b9a86",
+    CrossChainRouter: "0x18Aade5d6368eA5171217D91634a92c2EBDDF5E9",
   },
 };
 

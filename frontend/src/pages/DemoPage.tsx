@@ -10,7 +10,6 @@ import {
   Wallet,
   Send,
   Key,
-  Coins,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
@@ -31,16 +30,10 @@ type Step =
   | "complete"
   | "error";
 
-const AMOY_CHAIN_ID = 80002;
-const AMOY_RPC = "https://rpc-amoy.polygon.technology";
+const CHAIN_ID = 137;
+const RPC_URL = "https://polygon-bor-rpc.publicnode.com";
 const DEMO_SERVER =
   import.meta.env.VITE_DEMO_SERVER_URL || "http://localhost:3001";
-
-// Amoy requires minimum 25 Gwei gas tip — MetaMask defaults to ~1.5 Gwei which gets rejected
-const AMOY_GAS_OVERRIDES = {
-  maxFeePerGas: ethers.parseUnits("50", "gwei"),
-  maxPriorityFeePerGas: ethers.parseUnits("30", "gwei"),
-};
 
 export default function DemoPage() {
   const [step, setStep] = useState<Step>("idle");
@@ -62,14 +55,13 @@ export default function DemoPage() {
   const [serverPayload, setServerPayload] = useState<any>(null);
   const [usdcBalance, setUsdcBalance] = useState<bigint | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [minting, setMinting] = useState(false);
 
   // Fetch on-chain stats on mount
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const provider = new ethers.JsonRpcProvider(AMOY_RPC);
-        const addresses = CONTRACT_ADDRESSES[AMOY_CHAIN_ID];
+        const provider = new ethers.JsonRpcProvider(RPC_URL);
+        const addresses = CONTRACT_ADDRESSES[CHAIN_ID];
         if (!addresses?.StealthAnnouncer) return;
         const announcer = new ethers.Contract(
           addresses.StealthAnnouncer,
@@ -94,11 +86,11 @@ export default function DemoPage() {
 
     // Switch chain first, THEN create provider (avoids stale chainId bug)
     const currentChainId = parseInt(await ethereum.request({ method: "eth_chainId" }), 16);
-    if (currentChainId !== AMOY_CHAIN_ID) {
+    if (currentChainId !== CHAIN_ID) {
       try {
         await ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x" + AMOY_CHAIN_ID.toString(16) }],
+          params: [{ chainId: "0x" + CHAIN_ID.toString(16) }],
         });
       } catch (switchError: any) {
         if (switchError.code === 4902) {
@@ -106,15 +98,15 @@ export default function DemoPage() {
             method: "wallet_addEthereumChain",
             params: [
               {
-                chainId: "0x" + AMOY_CHAIN_ID.toString(16),
-                chainName: "Polygon Amoy Testnet",
+                chainId: "0x" + CHAIN_ID.toString(16),
+                chainName: "Polygon",
                 nativeCurrency: {
                   name: "POL",
                   symbol: "POL",
                   decimals: 18,
                 },
-                rpcUrls: [AMOY_RPC],
-                blockExplorerUrls: ["https://amoy.polygonscan.com"],
+                rpcUrls: [RPC_URL],
+                blockExplorerUrls: ["https://polygonscan.com"],
               },
             ],
           });
@@ -133,8 +125,8 @@ export default function DemoPage() {
 
   const fetchUsdcBalance = async (addr: string) => {
     try {
-      const provider = new ethers.JsonRpcProvider(AMOY_RPC);
-      const addresses = CONTRACT_ADDRESSES[AMOY_CHAIN_ID];
+      const provider = new ethers.JsonRpcProvider(RPC_URL);
+      const addresses = CONTRACT_ADDRESSES[CHAIN_ID];
       const usdc = new ethers.Contract(
         addresses.USDC,
         MOCK_USDC_ABI,
@@ -194,7 +186,7 @@ export default function DemoPage() {
 
       // Step 3: Show 402 Payment Required
       setStep("got402");
-      const addresses = CONTRACT_ADDRESSES[AMOY_CHAIN_ID];
+      const addresses = CONTRACT_ADDRESSES[CHAIN_ID];
       if (!paymentRequired) {
         paymentRequired = {
           status: 402,
@@ -203,7 +195,7 @@ export default function DemoPage() {
           payment: {
             amount: "0.01",
             token: "USDC",
-            chain: AMOY_CHAIN_ID,
+            chain: CHAIN_ID,
             receiver: addresses.StealthPaymentRouter,
             description: "Weather data — pay 0.01 USDC via x402",
           },
@@ -234,7 +226,7 @@ export default function DemoPage() {
       const domain: ethers.TypedDataDomain = {
         name: "USD Coin",
         version: "2",
-        chainId: AMOY_CHAIN_ID,
+        chainId: CHAIN_ID,
         verifyingContract: addresses.USDC,
       };
       const types = {
@@ -265,7 +257,7 @@ export default function DemoPage() {
       // Step 6: Read on-chain state
       setStep("processing");
       console.log("[Demo] Step 6: Reading on-chain state...");
-      const readProvider = new ethers.JsonRpcProvider(AMOY_RPC);
+      const readProvider = new ethers.JsonRpcProvider(RPC_URL);
       const router = new ethers.Contract(
         addresses.StealthPaymentRouter,
         ROUTER_ABI,
@@ -295,7 +287,7 @@ export default function DemoPage() {
               router_address: addresses.StealthPaymentRouter,
               platform_fee: `${feePercent}%`,
               total_announcements: Number(totalAnnouncements),
-              network: "Polygon Amoy (80002)",
+              network: "Polygon Mainnet (137)",
             },
             stealth_payment: {
               stealth_address: stealth.stealthAddress,
@@ -336,10 +328,10 @@ export default function DemoPage() {
     setError(null);
 
     try {
-      const addresses = CONTRACT_ADDRESSES[AMOY_CHAIN_ID];
+      const addresses = CONTRACT_ADDRESSES[CHAIN_ID];
 
       // Check USDC balance first
-      const provider = new ethers.JsonRpcProvider(AMOY_RPC);
+      const provider = new ethers.JsonRpcProvider(RPC_URL);
       const usdc = new ethers.Contract(addresses.USDC, MOCK_USDC_ABI, provider);
       const balance: bigint = await usdc.balanceOf(walletAddress);
       const required = ethers.parseUnits("0.01", 6);
@@ -347,7 +339,7 @@ export default function DemoPage() {
       if (balance < required) {
         setError(
           `Insufficient USDC balance: ${ethers.formatUnits(balance, 6)} USDC. ` +
-          `You need at least 0.01 USDC. Use "Mint Test USDC" below.`
+          `You need at least 0.01 USDC on Polygon mainnet.`
         );
         setSubmitting(false);
         return;
@@ -358,7 +350,7 @@ export default function DemoPage() {
         ROUTER_ABI,
         walletSigner
       );
-      console.log("[Submit] Calling processPayment with Amoy gas overrides...");
+      console.log("[Submit] Calling processPayment on Polygon Mainnet...");
       console.log("[Submit] Params:", {
         from: walletAddress,
         amount: "10000 (0.01 USDC)",
@@ -377,8 +369,7 @@ export default function DemoPage() {
           ephPubKey,
           viewTag,
           eip3009Sig,
-        ],
-        AMOY_GAS_OVERRIDES
+        ]
       );
       console.log("[Submit] TX sent:", tx.hash);
       setTxHash(tx.hash);
@@ -402,7 +393,7 @@ export default function DemoPage() {
         e.message?.includes("insufficient")
       ) {
         setError(
-          "Payment failed — insufficient USDC balance. Use 'Mint Test USDC' first."
+          "Payment failed — insufficient USDC balance on Polygon mainnet."
         );
       } else {
         setError(e.shortMessage || e.message || "Transaction failed");
@@ -412,39 +403,12 @@ export default function DemoPage() {
     }
   };
 
-  const mintTestUSDC = async () => {
-    if (!walletSigner || !walletAddress) return;
-    setMinting(true);
-    setError(null);
-    try {
-      const addresses = CONTRACT_ADDRESSES[AMOY_CHAIN_ID];
-      const usdc = new ethers.Contract(
-        addresses.USDC,
-        MOCK_USDC_ABI,
-        walletSigner
-      );
-      console.log("[Mint] Sending mint(100 USDC) with Amoy gas overrides...");
-      const tx = await usdc.mint(
-        walletAddress,
-        ethers.parseUnits("100", 6),
-        AMOY_GAS_OVERRIDES
-      );
-      console.log("[Mint] TX sent:", tx.hash);
-      await tx.wait();
-      console.log("[Mint] TX confirmed");
-      await fetchUsdcBalance(walletAddress);
-    } catch (e: any) {
-      console.error("[Mint] Error:", e);
-      setError(e.shortMessage || e.message || "Mint failed");
-    } finally {
-      setMinting(false);
-    }
-  };
+  // No mintTestUSDC on mainnet — real USDC only
 
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   const steps = [
-    { key: "connecting", label: "Connecting wallet to Polygon Amoy...", icon: Wallet },
+    { key: "connecting", label: "Connecting wallet to Polygon (Chain 137)...", icon: Wallet },
     { key: "requesting", label: "Requesting API endpoint...", icon: Zap },
     { key: "got402", label: "Received 402 Payment Required", icon: AlertCircle },
     { key: "stealth", label: "Generating stealth address (ECDH)...", icon: Key },
@@ -469,7 +433,7 @@ export default function DemoPage() {
       <p className="mb-4 text-gray-400">
         Connect your wallet and experience the full x402 + ERC-5564 stealth
         payment flow with real cryptographic operations and on-chain contract
-        queries on Polygon Amoy.
+        queries on Polygon Mainnet.
       </p>
 
       {/* On-chain stats */}
@@ -483,7 +447,7 @@ export default function DemoPage() {
           </div>
           <div className="rounded-lg border border-gray-800 bg-gray-900/50 px-4 py-2 text-sm">
             <span className="text-gray-400">Network: </span>
-            <span className="font-mono text-green-400">Polygon Amoy</span>
+            <span className="font-mono text-green-400">Polygon Mainnet</span>
           </div>
         </div>
       )}
@@ -634,7 +598,7 @@ export default function DemoPage() {
               On-Chain Transaction
             </div>
             <a
-              href={`https://amoy.polygonscan.com/tx/${txHash}`}
+              href={`https://polygonscan.com/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="break-all font-mono text-sm text-primary-400 underline"
@@ -669,26 +633,9 @@ export default function DemoPage() {
 
           {usdcBalance !== null && usdcBalance < ethers.parseUnits("0.01", 6) && (
             <div className="mb-4 rounded-lg border border-yellow-800 bg-yellow-900/10 p-3">
-              <div className="mb-2 text-sm text-yellow-400">
-                Insufficient USDC — you need at least 0.01 USDC
+              <div className="text-sm text-yellow-400">
+                Insufficient USDC — you need at least 0.01 USDC on Polygon. Bridge or swap USDC on a DEX first.
               </div>
-              <button
-                onClick={mintTestUSDC}
-                disabled={minting}
-                className="btn-secondary flex items-center gap-2 text-sm"
-              >
-                {minting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Minting...
-                  </>
-                ) : (
-                  <>
-                    <Coins className="h-4 w-4" />
-                    Mint 100 Test USDC
-                  </>
-                )}
-              </button>
             </div>
           )}
 
@@ -722,7 +669,7 @@ export default function DemoPage() {
             <div className="flex items-start justify-between">
               <span className="text-gray-500">Transaction</span>
               <a
-                href={`https://amoy.polygonscan.com/tx/${txHash}`}
+                href={`https://polygonscan.com/tx/${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-mono text-xs text-primary-400 hover:underline"
@@ -761,8 +708,8 @@ export default function DemoPage() {
         <div className="space-y-3 text-sm text-gray-400">
           <p>
             <strong className="text-gray-200">1. Wallet Connection:</strong>{" "}
-            Your browser wallet connected to Polygon Amoy testnet (Chain ID
-            80002), establishing a real on-chain session.
+            Your browser wallet connected to Polygon Mainnet (Chain ID
+            137), establishing a real on-chain session.
           </p>
           <p>
             <strong className="text-gray-200">2. HTTP 402:</strong> The demo
@@ -789,7 +736,7 @@ export default function DemoPage() {
           <p>
             <strong className="text-gray-200">5. On-Chain Query:</strong> Real
             contract state was read from StealthPaymentRouter (fee) and
-            StealthAnnouncer (announcement count) deployed on Polygon Amoy.
+            StealthAnnouncer (announcement count) deployed on Polygon Mainnet.
           </p>
           <p>
             <strong className="text-gray-200">6. Submit On-Chain:</strong> The

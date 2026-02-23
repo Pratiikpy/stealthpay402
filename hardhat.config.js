@@ -31,7 +31,7 @@ module.exports = {
     polygonMainnet: {
       url: ALCHEMY_KEY
         ? `https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`
-        : "https://polygon-rpc.com",
+        : "https://polygon-bor-rpc.publicnode.com",
       chainId: 137,
       accounts: [DEPLOYER_KEY],
     },
