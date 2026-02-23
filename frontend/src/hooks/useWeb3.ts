@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 
 // RPC endpoints for read-only queries (no wallet needed)
 const RPC_URLS: Record<number, string> = {
-  137: "https://polygon-rpc.com",
+  137: "https://polygon-bor-rpc.publicnode.com",
   80002: "https://rpc-amoy.polygon.technology",
 };
 
@@ -13,12 +13,12 @@ const RPC_URLS: Record<number, string> = {
  */
 export function useWeb3() {
   const [address, setAddress] = useState<string | null>(null);
-  const [chainId, setChainId] = useState<number>(80002); // Default to Amoy
+  const [chainId, setChainId] = useState<number>(137); // Default to Mainnet
   const [connecting, setConnecting] = useState(false);
 
   const getReadProvider = useCallback((chain?: number) => {
     const id = chain || chainId;
-    const rpcUrl = RPC_URLS[id] || RPC_URLS[80002];
+    const rpcUrl = RPC_URLS[id] || RPC_URLS[137];
     return new ethers.JsonRpcProvider(rpcUrl);
   }, [chainId]);
 

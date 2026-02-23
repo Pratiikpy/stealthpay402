@@ -21,8 +21,8 @@ import { useContractData } from "../hooks/useContractData";
 import { CONTRACT_ADDRESSES } from "../lib/contracts";
 
 const CHAIN_OPTIONS = [
+  { id: 137, name: "Polygon Mainnet", rpc: "https://polygon-bor-rpc.publicnode.com" },
   { id: 80002, name: "Amoy Testnet", rpc: "https://rpc-amoy.polygon.technology" },
-  { id: 137, name: "Polygon Mainnet", rpc: "https://polygon-rpc.com" },
 ];
 
 export default function DashboardPage() {

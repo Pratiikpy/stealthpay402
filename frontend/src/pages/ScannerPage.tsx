@@ -13,8 +13,8 @@ interface ScanResult {
 }
 
 const CHAIN_OPTIONS = [
+  { id: 137, name: "Polygon Mainnet", rpc: "https://polygon-bor-rpc.publicnode.com" },
   { id: 80002, name: "Amoy Testnet", rpc: "https://rpc-amoy.polygon.technology" },
-  { id: 137, name: "Polygon Mainnet", rpc: "https://polygon-rpc.com" },
 ];
 
 export default function ScannerPage() {

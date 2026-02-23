@@ -80,7 +80,7 @@ app.get('/api/weather', stealthPay402({
   token: 'USDC',
   chain: 137,              // Polygon Mainnet
   routerAddress: '0x...',  // StealthPaymentRouter
-  rpcUrl: 'https://polygon-rpc.com',
+  rpcUrl: 'https://polygon-bor-rpc.publicnode.com',
 }), (req, res) => {
   // Only reached after payment is verified
   res.json({
@@ -106,7 +106,7 @@ app.listen(3001);`}
 // Load agent wallet
 const wallet = loadAgentWallet(
   process.env.AGENT_PRIVATE_KEY,
-  'https://polygon-rpc.com'
+  'https://polygon-bor-rpc.publicnode.com'
 );
 
 // Make paid API call with stealth privacy
