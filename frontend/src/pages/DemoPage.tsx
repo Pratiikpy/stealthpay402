@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import {
   Play,
   CheckCircle,
@@ -18,6 +20,8 @@ import {
   MOCK_USDC_ABI,
 } from "../lib/contracts";
 import { generateStealthAddress, DEMO_META_ADDRESS } from "../lib/stealth";
+import { PageTransition } from "../components/ui/Motion";
+import { CopyButton } from "../components/ui/CopyButton";
 
 type Step =
   | "idle"
@@ -158,6 +162,7 @@ export default function DemoPage() {
       const addr = await signer.getAddress();
       setWalletSigner(signer);
       console.log("[Demo] Wallet connected:", addr);
+      toast.success("Connected to Polygon Mainnet");
 
       // Step 2: Request API — try real demo-server if configured (not localhost on production)
       setStep("requesting");
@@ -253,6 +258,7 @@ export default function DemoPage() {
       const sig = await signer.signTypedData(domain, types, message);
       setEip3009Sig(sig);
       console.log("[Demo] Signature:", sig);
+      toast.success("EIP-3009 authorization signed");
 
       // Step 6: Read on-chain state
       setStep("processing");
@@ -316,8 +322,10 @@ export default function DemoPage() {
       setStep("error");
       if (e.code === "ACTION_REJECTED" || e.code === 4001) {
         setError("Signature rejected — you cancelled the MetaMask prompt.");
+        toast.error("Signature rejected");
       } else {
         setError(e.message || "Unknown error");
+        toast.error("Demo failed");
       }
     }
   };
@@ -375,6 +383,7 @@ export default function DemoPage() {
       setTxHash(tx.hash);
       await tx.wait();
       console.log("[Submit] TX confirmed");
+      toast.success("Payment confirmed on-chain!");
 
       // Refresh stats
       const announcer = new ethers.Contract(
@@ -428,6 +437,7 @@ export default function DemoPage() {
   };
 
   return (
+    <PageTransition>
     <div className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="mb-2 text-3xl font-bold">Live x402 Payment Demo</h1>
       <p className="mb-4 text-gray-400">
@@ -509,8 +519,11 @@ export default function DemoPage() {
           {steps.map((s) => {
             const status = getStepStatus(s.key);
             return (
-              <div
+              <motion.div
                 key={s.key}
+                initial={status === "active" ? { opacity: 0, x: -10 } : false}
+                animate={{ opacity: status === "pending" ? 0.5 : 1, x: 0 }}
+                transition={{ duration: 0.3 }}
                 className={`flex items-center gap-3 rounded-lg border px-4 py-3 transition-all ${
                   status === "done"
                     ? "border-green-800 bg-green-900/10"
@@ -536,7 +549,7 @@ export default function DemoPage() {
                 {status === "done" && (
                   <CheckCircle className="ml-auto h-4 w-4 text-green-400" />
                 )}
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -559,8 +572,9 @@ export default function DemoPage() {
             <div className="mb-1 text-xs text-primary-400">
               Generated Stealth Address (ERC-5564 ECDH)
             </div>
-            <div className="mb-2 break-all font-mono text-sm">
+            <div className="mb-2 break-all font-mono text-sm flex items-start gap-1">
               {stealthAddr}
+              <CopyButton text={stealthAddr} />
             </div>
             <div className="space-y-1 text-xs text-gray-500">
               <div>
@@ -585,8 +599,9 @@ export default function DemoPage() {
             <div className="mb-1 text-xs text-purple-400">
               EIP-3009 Signature (signed via MetaMask)
             </div>
-            <div className="break-all font-mono text-xs text-gray-400">
-              {eip3009Sig}
+            <div className="break-all font-mono text-xs text-gray-400 flex items-start gap-1">
+              <span className="flex-1">{eip3009Sig}</span>
+              <CopyButton text={eip3009Sig} />
             </div>
           </div>
         )}
@@ -639,9 +654,11 @@ export default function DemoPage() {
             </div>
           )}
 
-          <button
+          <motion.button
             onClick={submitOnChain}
             disabled={submitting}
+            animate={!submitting ? { scale: [1, 1.02, 1] } : {}}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             className="btn-primary flex items-center gap-2"
           >
             {submitting ? (
@@ -655,7 +672,7 @@ export default function DemoPage() {
                 Submit Payment (0.01 USDC + gas)
               </>
             )}
-          </button>
+          </motion.button>
         </div>
       )}
 
@@ -748,5 +765,6 @@ export default function DemoPage() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

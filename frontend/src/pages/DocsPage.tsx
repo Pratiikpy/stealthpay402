@@ -1,5 +1,8 @@
+import { motion } from "framer-motion";
 import { Code, Server, Bot, Terminal } from "lucide-react";
 import { CONTRACT_ADDRESSES } from "../lib/contracts";
+import { PageTransition, stagger } from "../components/ui/Motion";
+import { CopyButton } from "../components/ui/CopyButton";
 
 const CONTRACT_NAMES = [
   "StealthPaymentRouter",
@@ -44,6 +47,7 @@ export default function DocsPage() {
   const mainnetAddresses = CONTRACT_ADDRESSES[137] || {};
 
   return (
+    <PageTransition>
     <div className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="mb-2 text-3xl font-bold">Integration Guide</h1>
       <p className="mb-8 text-gray-400">
@@ -51,8 +55,9 @@ export default function DocsPage() {
         middleware, and start accepting stealth payments.
       </p>
 
+      <motion.div variants={stagger.container} initial="hidden" animate="show">
       {/* Install */}
-      <section className="card mb-6">
+      <motion.section variants={stagger.item} className="card mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Terminal className="h-5 w-5 text-primary-400" />
           <h2 className="text-xl font-semibold">1. Install SDK</h2>
@@ -60,10 +65,10 @@ export default function DocsPage() {
         <pre className="rounded-lg bg-gray-800 p-4 text-sm text-green-400 overflow-x-auto">
           npm install @stealthpay402/sdk ethers
         </pre>
-      </section>
+      </motion.section>
 
       {/* Server Setup */}
-      <section className="card mb-6">
+      <motion.section variants={stagger.item} className="card mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Server className="h-5 w-5 text-primary-400" />
           <h2 className="text-xl font-semibold">2. Protect Your API (Server)</h2>
@@ -92,10 +97,10 @@ app.get('/api/weather', stealthPay402({
 
 app.listen(3001);`}
         </pre>
-      </section>
+      </motion.section>
 
       {/* Client Setup */}
-      <section className="card mb-6">
+      <motion.section variants={stagger.item} className="card mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Bot className="h-5 w-5 text-primary-400" />
           <h2 className="text-xl font-semibold">3. Pay for Access (AI Agent)</h2>
@@ -124,10 +129,10 @@ console.log(result.data);
 console.log(result.paymentInfo);
 // { amount: '0.01', stealthAddress: '0x...', private: true }`}
         </pre>
-      </section>
+      </motion.section>
 
       {/* Stealth Keys */}
-      <section className="card mb-6">
+      <motion.section variants={stagger.item} className="card mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Code className="h-5 w-5 text-primary-400" />
           <h2 className="text-xl font-semibold">4. Generate Stealth Keys</h2>
@@ -150,10 +155,10 @@ console.log(keys);
 // Register meta-address on-chain so senders can find you
 // Use StealthMetaRegistry.registerKeys(1, keys.metaAddress)`}
         </pre>
-      </section>
+      </motion.section>
 
       {/* Contract Addresses — dynamically read from contracts.ts */}
-      <section className="card mb-6">
+      <motion.section variants={stagger.item} className="card mb-6">
         <h2 className="text-xl font-semibold mb-4">Contract Addresses</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -169,10 +174,16 @@ console.log(keys);
                 <tr key={name} className="border-b border-gray-800/50">
                   <td className="py-2 font-sans text-sm">{name}</td>
                   <td className="py-2">
-                    {formatAddress(amoyAddresses[name])}
+                    <span className="inline-flex items-center">
+                      {formatAddress(amoyAddresses[name])}
+                      {amoyAddresses[name] && <CopyButton text={amoyAddresses[name]} />}
+                    </span>
                   </td>
                   <td className="py-2">
-                    {formatAddressMainnet(mainnetAddresses[name])}
+                    <span className="inline-flex items-center">
+                      {formatAddressMainnet(mainnetAddresses[name])}
+                      {mainnetAddresses[name] && <CopyButton text={mainnetAddresses[name]} />}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -182,10 +193,10 @@ console.log(keys);
         <p className="mt-3 text-xs text-gray-600">
           Addresses are auto-populated by the deployment script. Run <code className="text-gray-400">npm run deploy:amoy</code> to deploy.
         </p>
-      </section>
+      </motion.section>
 
       {/* Tech Stack */}
-      <section className="card">
+      <motion.section variants={stagger.item} className="card">
         <h2 className="text-xl font-semibold mb-4">Tech Stack</h2>
         <div className="grid gap-4 md:grid-cols-2">
           {[
@@ -202,7 +213,9 @@ console.log(keys);
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
+      </motion.div>
     </div>
+    </PageTransition>
   );
 }

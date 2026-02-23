@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Search, Shield, Eye, Loader2, AlertTriangle } from "lucide-react";
 import { ethers } from "ethers";
 import { CONTRACT_ADDRESSES, ANNOUNCER_ABI } from "../lib/contracts";
+import { PageTransition, stagger } from "../components/ui/Motion";
+import { CopyButton } from "../components/ui/CopyButton";
 
 interface ScanResult {
   stealthAddress: string;
@@ -99,8 +103,11 @@ export default function ScannerPage() {
       }
 
       setResults(matched);
+      if (matched.length > 0) toast.success(`Found ${matched.length} stealth payment(s)`);
+      else toast("No matching payments found");
     } catch (err: any) {
       setError(err.message || "Scan failed");
+      toast.error(err.message || "Scan failed");
     } finally {
       setScanning(false);
       setScanned(true);
@@ -108,6 +115,7 @@ export default function ScannerPage() {
   };
 
   return (
+    <PageTransition>
     <div className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="mb-2 text-3xl font-bold">Stealth Payment Scanner</h1>
       <p className="mb-8 text-gray-400">
@@ -228,10 +236,16 @@ export default function ScannerPage() {
           </div>
 
           {results.length > 0 ? (
-            <div className="space-y-3">
+            <motion.div
+              variants={stagger.container}
+              initial="hidden"
+              animate="show"
+              className="space-y-3"
+            >
               {results.map((r, i) => (
-                <div
+                <motion.div
                   key={i}
+                  variants={stagger.item}
                   className="rounded-lg border border-gray-800 bg-gray-800/50 p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -245,8 +259,9 @@ export default function ScannerPage() {
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Stealth Address</span>
-                      <span className="font-mono text-xs">
+                      <span className="font-mono text-xs flex items-center">
                         {r.stealthAddress.slice(0, 10)}...{r.stealthAddress.slice(-8)}
+                        <CopyButton text={r.stealthAddress} />
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -265,9 +280,9 @@ export default function ScannerPage() {
                       </a>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
             <p className="text-sm text-gray-500">
               No announcements matched your viewing key in the last {blocksScanned.toLocaleString()} blocks.
@@ -277,5 +292,6 @@ export default function ScannerPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
