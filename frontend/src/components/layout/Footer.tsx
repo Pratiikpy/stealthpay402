@@ -12,9 +12,9 @@ export default function Footer() {
             </span>
           </div>
           <div className="flex items-center gap-4 text-sm text-gray-500">
-            <span>Built for Polygon Buildathon 2026</span>
+            <span>Polygon Mainnet (137)</span>
             <span>|</span>
-            <span>Chain 137 / 80002 / 2442</span>
+            <a href="https://github.com/Pratiikpy/stealthpay402" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300">GitHub</a>
           </div>
         </div>
       </div>

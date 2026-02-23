@@ -58,7 +58,7 @@ export default function Home() {
       <section className="relative overflow-hidden py-20">
         <div className="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-transparent to-purple-900/10" />
         <div className="relative mx-auto max-w-7xl px-4 text-center">
-          <div className="badge-purple mb-4">Polygon Buildathon 2026</div>
+          <div className="badge-purple mb-4">Live on Polygon Mainnet</div>
           <h1 className="mb-6 text-5xl font-bold tracking-tight md:text-6xl">
             Privacy Payments for
             <br />
