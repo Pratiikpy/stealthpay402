@@ -167,23 +167,29 @@ export default function DemoPage() {
       setWalletSigner(signer);
       console.log("[Demo] Wallet connected:", addr);
 
-      // Step 2: Request API — try real demo-server first
+      // Step 2: Request API — try real demo-server if configured (not localhost on production)
       setStep("requesting");
-      console.log("[Demo] Step 2: Requesting", DEMO_SERVER);
       let paymentRequired: any = null;
       let serverAvailable = false;
-      try {
-        const resp = await fetch(
-          `${DEMO_SERVER}/api/weather?city=new_york`,
-          { signal: AbortSignal.timeout(3000) }
-        );
-        if (resp.status === 402) {
-          paymentRequired = await resp.json();
-          serverAvailable = true;
-          console.log("[Demo] Got real 402 from server:", paymentRequired);
+      const isLocalhost = DEMO_SERVER.includes("localhost") || DEMO_SERVER.includes("127.0.0.1");
+      const isProduction = window.location.protocol === "https:";
+      if (!isLocalhost || !isProduction) {
+        try {
+          console.log("[Demo] Step 2: Requesting", DEMO_SERVER);
+          const resp = await fetch(
+            `${DEMO_SERVER}/api/weather?city=new_york`,
+            { signal: AbortSignal.timeout(3000) }
+          );
+          if (resp.status === 402) {
+            paymentRequired = await resp.json();
+            serverAvailable = true;
+            console.log("[Demo] Got real 402 from server:", paymentRequired);
+          }
+        } catch {
+          console.log("[Demo] Demo server not available, using fallback");
         }
-      } catch {
-        console.log("[Demo] Demo server not available, using fallback 402");
+      } else {
+        console.log("[Demo] Step 2: Production mode — using on-chain 402");
       }
 
       // Step 3: Show 402 Payment Required
