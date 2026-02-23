@@ -36,6 +36,12 @@ const AMOY_RPC = "https://rpc-amoy.polygon.technology";
 const DEMO_SERVER =
   import.meta.env.VITE_DEMO_SERVER_URL || "http://localhost:3001";
 
+// Amoy requires minimum 25 Gwei gas tip — MetaMask defaults to ~1.5 Gwei which gets rejected
+const AMOY_GAS_OVERRIDES = {
+  maxFeePerGas: ethers.parseUnits("50", "gwei"),
+  maxPriorityFeePerGas: ethers.parseUnits("30", "gwei"),
+};
+
 export default function DemoPage() {
   const [step, setStep] = useState<Step>("idle");
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -154,13 +160,16 @@ export default function DemoPage() {
     try {
       // Step 1: Connect wallet
       setStep("connecting");
+      console.log("[Demo] Step 1: Connecting wallet...");
       const provider = await connectWallet();
       const signer = await provider.getSigner();
       const addr = await signer.getAddress();
       setWalletSigner(signer);
+      console.log("[Demo] Wallet connected:", addr);
 
       // Step 2: Request API — try real demo-server first
       setStep("requesting");
+      console.log("[Demo] Step 2: Requesting", DEMO_SERVER);
       let paymentRequired: any = null;
       let serverAvailable = false;
       try {
@@ -171,9 +180,10 @@ export default function DemoPage() {
         if (resp.status === 402) {
           paymentRequired = await resp.json();
           serverAvailable = true;
+          console.log("[Demo] Got real 402 from server:", paymentRequired);
         }
       } catch {
-        // Demo server not available — use on-chain fallback
+        console.log("[Demo] Demo server not available, using fallback 402");
       }
 
       // Step 3: Show 402 Payment Required
@@ -198,10 +208,14 @@ export default function DemoPage() {
 
       // Step 4: Generate stealth address via real ECDH
       setStep("stealth");
+      console.log("[Demo] Step 4: Generating stealth address via ECDH...");
       const stealth = generateStealthAddress(DEMO_META_ADDRESS);
       setStealthAddr(stealth.stealthAddress);
       setEphPubKey(stealth.ephemeralPublicKey);
       setViewTag(stealth.viewTag);
+      console.log("[Demo] Stealth address:", stealth.stealthAddress);
+      console.log("[Demo] Ephemeral pubkey:", stealth.ephemeralPublicKey);
+      console.log("[Demo] View tag:", "0x" + stealth.viewTag.toString(16));
       await delay(300);
 
       // Step 5: Sign EIP-3009 transferWithAuthorization via MetaMask
@@ -236,11 +250,15 @@ export default function DemoPage() {
         nonce: nonce,
       };
 
+      console.log("[Demo] Step 5: Requesting EIP-3009 signature via MetaMask...");
+      console.log("[Demo] Signing:", { from: addr, to: addresses.StealthPaymentRouter, value: "0.01 USDC" });
       const sig = await signer.signTypedData(domain, types, message);
       setEip3009Sig(sig);
+      console.log("[Demo] Signature:", sig);
 
       // Step 6: Read on-chain state
       setStep("processing");
+      console.log("[Demo] Step 6: Reading on-chain state...");
       const readProvider = new ethers.JsonRpcProvider(AMOY_RPC);
       const router = new ethers.Contract(
         addresses.StealthPaymentRouter,
@@ -261,6 +279,7 @@ export default function DemoPage() {
       await fetchUsdcBalance(addr);
 
       // Step 7: Complete
+      console.log("[Demo] Step 7: Complete! Fee:", feePercent + "%", "Announcements:", Number(totalAnnouncements));
       setStep("complete");
       setApiResponse(
         JSON.stringify(
@@ -333,19 +352,32 @@ export default function DemoPage() {
         ROUTER_ABI,
         walletSigner
       );
-      const tx = await router.processPayment([
-        walletAddress,
-        ethers.parseUnits("0.01", 6),
-        paymentNonce,
-        0,
-        paymentValidBefore,
-        stealthAddr,
-        ephPubKey,
+      console.log("[Submit] Calling processPayment with Amoy gas overrides...");
+      console.log("[Submit] Params:", {
+        from: walletAddress,
+        amount: "10000 (0.01 USDC)",
+        nonce: paymentNonce,
+        stealthAddress: stealthAddr,
         viewTag,
-        eip3009Sig,
-      ]);
+      });
+      const tx = await router.processPayment(
+        [
+          walletAddress,
+          ethers.parseUnits("0.01", 6),
+          paymentNonce,
+          0,
+          paymentValidBefore,
+          stealthAddr,
+          ephPubKey,
+          viewTag,
+          eip3009Sig,
+        ],
+        AMOY_GAS_OVERRIDES
+      );
+      console.log("[Submit] TX sent:", tx.hash);
       setTxHash(tx.hash);
       await tx.wait();
+      console.log("[Submit] TX confirmed");
 
       // Refresh stats
       const announcer = new ethers.Contract(
@@ -385,13 +417,18 @@ export default function DemoPage() {
         MOCK_USDC_ABI,
         walletSigner
       );
+      console.log("[Mint] Sending mint(100 USDC) with Amoy gas overrides...");
       const tx = await usdc.mint(
         walletAddress,
-        ethers.parseUnits("100", 6)
+        ethers.parseUnits("100", 6),
+        AMOY_GAS_OVERRIDES
       );
+      console.log("[Mint] TX sent:", tx.hash);
       await tx.wait();
+      console.log("[Mint] TX confirmed");
       await fetchUsdcBalance(walletAddress);
     } catch (e: any) {
+      console.error("[Mint] Error:", e);
       setError(e.shortMessage || e.message || "Mint failed");
     } finally {
       setMinting(false);
