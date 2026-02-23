@@ -1,0 +1,6 @@
+[
+  "function registerKeys(uint256 schemeId, bytes stealthMetaAddress) external",
+  "function registerKeysOnBehalf(address registrant, uint256 schemeId, bytes stealthMetaAddress, bytes signature) external",
+  "function stealthMetaAddressOf(address registrant, uint256 schemeId) view returns (bytes)",
+  "event StealthMetaAddressSet(address indexed registrant, uint256 indexed schemeId, bytes stealthMetaAddress)"
+]

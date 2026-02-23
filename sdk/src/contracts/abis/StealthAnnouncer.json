@@ -1,0 +1,6 @@
+[
+  "function announce(uint256 schemeId, address stealthAddress, bytes ephemeralPubKey, bytes metadata) external",
+  "function announcementCount() view returns (uint256)",
+  "function SCHEME_ID() view returns (uint256)",
+  "event Announcement(uint256 indexed schemeId, address indexed stealthAddress, address indexed caller, bytes ephemeralPubKey, bytes metadata)"
+]

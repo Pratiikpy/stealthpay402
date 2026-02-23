@@ -1,0 +1,8 @@
+[
+  "function registerAgent(bytes32 metadataHash) payable external",
+  "function getAgent(address agent) view returns (tuple(address owner, bytes32 metadataHash, uint256 dailySpendLimit, uint256 spentToday, uint256 lastResetTimestamp, uint256 reputationScore, uint256 totalTransactions, uint256 totalVolume, bool isActive, uint256 registeredAt))",
+  "function isRegistered(address agent) view returns (bool)",
+  "function totalAgents() view returns (uint256)",
+  "event AgentRegistered(address indexed agent, bytes32 metadataHash)",
+  "event TransactionRecorded(address indexed agent, uint256 amount, uint256 newTotal)"
+]

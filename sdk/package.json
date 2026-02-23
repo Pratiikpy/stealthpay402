@@ -1,0 +1,36 @@
+{
+  "name": "@stealthpay402/sdk",
+  "version": "1.0.0",
+  "description": "SDK for integrating x402 stealth payments into AI agents and API servers",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./server": "./dist/server/index.js",
+    "./client": "./dist/client/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.8.0",
+    "@noble/secp256k1": "^2.3.0",
+    "ethers": "^6.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  },
+  "license": "MIT",
+  "keywords": [
+    "x402",
+    "stealth-addresses",
+    "polygon",
+    "ai-agents",
+    "privacy",
+    "payments"
+  ]
+}

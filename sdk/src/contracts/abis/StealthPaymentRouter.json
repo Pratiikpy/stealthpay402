@@ -1,0 +1,11 @@
+[
+  "function processPayment(tuple(address from, uint256 amount, bytes32 nonce, uint256 validAfter, uint256 validBefore, address stealthAddress, bytes ephemeralPubKey, uint8 viewTag, bytes signature) params) external",
+  "function batchProcessPayments(tuple(address from, uint256 amount, bytes32 nonce, uint256 validAfter, uint256 validBefore, address stealthAddress, bytes ephemeralPubKey, uint8 viewTag, bytes signature)[] params) external",
+  "function platformFeeBps() view returns (uint256)",
+  "function processed(bytes32) view returns (bool)",
+  "function usdc() view returns (address)",
+  "function announcer() view returns (address)",
+  "function feeVault() view returns (address)",
+  "event PaymentProcessed(address indexed from, address indexed stealthAddress, uint256 amount, uint256 fee, bytes32 nonce)",
+  "event BatchProcessed(uint256 count, uint256 totalAmount, uint256 totalFees)"
+]
